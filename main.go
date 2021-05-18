@@ -38,8 +38,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/login", loginHandler)
-	http.HandleFunc("/", homePage)
+	router.HandleFunc("/login", loginHandler).Methods("POST")
+	router.HandleFunc("/", homePage).Methods("GET")
+	http.Handle("/", router)
 	log.Fatal(http.ListenAndServe(":8888", nil))
 }
 
