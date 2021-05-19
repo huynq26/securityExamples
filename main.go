@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
 
@@ -15,10 +17,12 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	username := vars["username"]
-	password := vars["password"]
 	fmt.Println("Endpoint Hit: login")
+	var u User
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		panic(err)
+	}
 
 	db, err := sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/securitytest")
 
@@ -28,7 +32,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	var userId int
-	err = db.QueryRow("SELECT id FROM users WHERE username='" + username + "' AND password='" + password + "'").Scan(&userId)
+	err = db.QueryRow("SELECT id FROM users WHERE username='" + u.Username + "' AND password='" + u.Password + "'").Scan(&userId)
 	//err = db.QueryRow("SELECT id FROM users WHERE username=? AND password=?", username, password).Scan(&userId)
 	if err != nil {
 		w.WriteHeader(400)
@@ -46,4 +50,9 @@ func handleRequests() {
 
 func main() {
 	handleRequests()
+}
+
+type User struct {
+	Username string
+	Password string
 }
